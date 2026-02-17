@@ -1,0 +1,26 @@
+# Shopify CLI configuration
+# Learn more: https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "YOUR_CLIENT_ID"
+name = "shopify-cli-mcp-app"
+application_url = "https://your-app-url.com"
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "your-dev-store.myshopify.com"
+
+[auth]
+redirect_urls = [
+  "https://your-app-url.com/auth/callback",
+  "https://your-app-url.com/auth/shopify/callback",
+  "https://your-app-url.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2025-01"
+
+[access_scopes]
+scopes = "read_products,write_products,read_orders,read_customers"
+
+[pos]
+embedded = false

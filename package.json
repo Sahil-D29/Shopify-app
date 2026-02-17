@@ -1,0 +1,43 @@
+{
+  "name": "shopify-cli-mcp-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shopify app with CLI and MCP server integration",
+  "scripts": {
+    "dev": "shopify app dev",
+    "build": "remix vite:build",
+    "start": "remix-serve ./build/server/index.js",
+    "lint": "eslint --cache .",
+    "shopify": "shopify",
+    "mcp:dev": "node mcp-server/index.js",
+    "mcp:start": "npx -y @shopify/dev-mcp@latest",
+    "setup": "node scripts/setup-mcp.js"
+  },
+  "dependencies": {
+    "@remix-run/node": "^2.16.0",
+    "@remix-run/react": "^2.16.0",
+    "@remix-run/serve": "^2.16.0",
+    "@shopify/app": "^3.77.0",
+    "@shopify/cli": "^3.77.0",
+    "@shopify/polaris": "^13.9.0",
+    "@shopify/shopify-api": "^11.8.0",
+    "@shopify/shopify-app-remix": "^3.5.0",
+    "@shopify/shopify-app-session-storage-prisma": "^5.2.0",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@prisma/client": "^6.3.0",
+    "isbot": "^5.1.0",
+    "prisma": "^6.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "vite": "^6.1.0"
+  },
+  "devDependencies": {
+    "@remix-run/dev": "^2.16.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
