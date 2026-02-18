@@ -1,19 +1,19 @@
 # Shopify CLI configuration — AI Discovery Optimizer
 # Learn more: https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "YOUR_CLIENT_ID"
+client_id = "e4167b09896f52653ae8bfb1b95621cb"
 name = "AI Discovery Optimizer"
-application_url = "https://your-app-url.com"
+application_url = "https://localhost:3000"
 
 [build]
 automatically_update_urls_on_dev = true
-dev_store_url = "your-dev-store.myshopify.com"
+dev_store_url = "tsg-api.myshopify.com"
 
 [auth]
 redirect_urls = [
-  "https://your-app-url.com/auth/callback",
-  "https://your-app-url.com/auth/shopify/callback",
-  "https://your-app-url.com/api/auth/callback"
+  "https://localhost:3000/auth/callback",
+  "https://localhost:3000/auth/shopify/callback",
+  "https://localhost:3000/api/auth/callback"
 ]
 
 [webhooks]
