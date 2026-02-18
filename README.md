@@ -1,203 +1,156 @@
-# Shopify CLI + MCP Server Integration
+# AI Discovery Optimizer for Shopify
 
-A Shopify Remix app with full [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) integration, enabling AI assistants to interact with your Shopify store through Shopify CLI.
+Make your Shopify store visible to AI shopping agents — ChatGPT, Perplexity, Google AI Overviews, Claude, and more. AI-referred traffic to retail sites grew **4,700% YoY**. This is SEO for the AI era.
 
-## Architecture
+## What It Does
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   AI Assistant                       │
-│            (Claude, Cursor, Copilot)                 │
-└────────────┬────────────────────┬───────────────────┘
-             │                    │
-     MCP Protocol           MCP Protocol
-             │                    │
-┌────────────▼──────┐  ┌─────────▼────────────────────┐
-│  Shopify Dev MCP  │  │    Custom Store MCP Server    │
-│    (Official)     │  │      (mcp-server/)            │
-│                   │  │                               │
-│ • Search docs     │  │ • list/get/create products    │
-│ • API schemas     │  │ • list/get orders             │
-│ • Dev guidance    │  │ • list/get customers          │
-│                   │  │ • Run arbitrary GraphQL       │
-└───────────────────┘  └──────────┬────────────────────┘
-                                  │
-                       Shopify Admin API
-                                  │
-                       ┌──────────▼──────────┐
-                       │   Shopify Store      │
-                       └─────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│              AI Shopping Agents                          │
+│  ChatGPT · Perplexity · Google AI · Claude · Cohere     │
+└──────┬───────┬───────┬────────┬───────┬─────────────────┘
+       │       │       │        │       │
+  llms.txt  JSON-LD  robots  FAQs  Keywords
+       │       │       │        │       │
+┌──────▼───────▼───────▼────────▼───────▼─────────────────┐
+│         AI Discovery Optimizer (this app)                │
+│                                                          │
+│  1. AI Readiness Score (0-100)                           │
+│  2. llms.txt / llms-full.txt generator                   │
+│  3. Structured Data (JSON-LD Schema.org)                 │
+│  4. robots.txt optimizer for AI crawlers                 │
+│  5. Conversational FAQ generator                         │
+│  6. Keyword & synonym expansion                          │
+│  7. Theme extension (auto-injects schemas + FAQs)        │
+│  8. MCP server (14 tools for AI assistants)              │
+└──────────────────────────────────────────────────────────┘
 ```
 
-## Two MCP Servers
+## Features
 
-### 1. Shopify Dev MCP (Official)
+### AI Readiness Score
+Scans your store and produces a 0-100 score across 6 categories: llms.txt, structured data, robots.txt, FAQ coverage, content quality, and metadata quality. Share your score — viral growth built in.
 
-The [official Shopify Dev MCP server](https://shopify.dev/docs/apps/build/devmcp) provides:
+### llms.txt / llms-full.txt Generator
+Auto-generates standardized Markdown files (per [llmstxt.org](https://llmstxt.org/)) from your products, collections, and pages. These files let AI agents index your entire catalog in seconds.
 
-- **search_dev_docs** — Search Shopify developer documentation
-- **introspect_admin_schema** — Explore the GraphQL Admin API schema
-- **shopify_admin_graphql** — Get help writing GraphQL operations
+### Structured Data (JSON-LD)
+Generates Schema.org markup for Product, FAQ, Organization, Breadcrumb, and WebSite/Sitelinks. Stores with proper schema see **30-40% higher AI visibility**.
 
-No authentication required. Runs locally via `npx`.
+### robots.txt Optimizer
+Configures explicit rules for AI crawlers: GPTBot, ClaudeBot, PerplexityBot, Google-Extended, Cohere, and Meta/FacebookBot. Most Shopify stores don't explicitly allow these — you need to.
 
-### 2. Custom Store MCP Server
+### Conversational FAQ Generator
+Auto-generates natural-language Q&A pairs for every product, collection, and your store. Matches how people ask AI assistants: "What is the best running shoe under $100?" — not "running shoe price".
 
-A custom MCP server (`mcp-server/`) that connects directly to your store's Admin API:
+### Keywords & Synonyms
+Expands product terms into synonym sets and conversational search phrases. "Leather wallet" becomes "genuine leather wallet, men's wallet, affordable wallet online, best wallet for everyday use".
+
+### Theme App Extension
+Drop-in blocks that inject JSON-LD structured data and FAQ schema into your live storefront. No theme code editing needed.
+
+### MCP Server (14 Tools)
+Full Model Context Protocol server so AI assistants (Claude, Cursor, Copilot) can interact with your store:
 
 | Tool | Description |
 |------|-------------|
-| `list_products` | List products with optional search/filter |
-| `get_product` | Get detailed product info by ID |
-| `create_product` | Create a new product |
-| `list_orders` | List orders with status filtering |
-| `get_order` | Get detailed order info |
-| `list_customers` | List customers with optional search |
-| `get_customer` | Get detailed customer info |
-| `run_graphql` | Execute arbitrary GraphQL queries |
+| `list_products` / `get_product` / `create_product` | Product CRUD |
+| `list_orders` / `get_order` | Order management |
+| `list_customers` / `get_customer` | Customer data |
+| `run_graphql` | Arbitrary Admin API queries |
+| `generate_llms_txt` | Generate llms.txt + llms-full.txt |
+| `generate_product_faq` | Generate conversational FAQs |
+| `generate_product_schema` | Generate JSON-LD schema |
+| `generate_robots_txt` | Generate AI-optimized robots.txt |
+| `generate_keywords` | Generate synonyms + phrases |
+| `ai_readiness_audit` | Full store audit with score |
 
-## Setup
-
-### Prerequisites
-
-- Node.js 18+
-- A [Shopify Partner account](https://partners.shopify.com/)
-- A development store
+## Quick Start
 
 ### 1. Install dependencies
-
 ```bash
 npm install
 ```
 
 ### 2. Configure environment
-
 ```bash
 cp .env.example .env
+# Fill in SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_STORE_DOMAIN, SHOPIFY_ACCESS_TOKEN
 ```
 
-Edit `.env` and fill in your Shopify credentials:
-
-```
-SHOPIFY_API_KEY=your_api_key
-SHOPIFY_API_SECRET=your_api_secret
-SHOPIFY_STORE_DOMAIN=your-store.myshopify.com
-SHOPIFY_ACCESS_TOKEN=shpat_xxxxx
-```
-
-### 3. Set up the database
-
+### 3. Set up database
 ```bash
-npx prisma generate
-npx prisma migrate dev
+npx prisma generate && npx prisma db push
 ```
 
-### 4. Configure MCP for your AI tool
+### 4. Start development
+```bash
+shopify app dev
+```
 
-Run the setup script to generate MCP config for Claude, Cursor, and VS Code:
-
+### 5. Configure MCP (optional)
 ```bash
 npm run setup
-```
-
-Or configure manually — add to your AI tool's MCP config:
-
-```json
-{
-  "mcpServers": {
-    "shopify-dev-mcp": {
-      "command": "npx",
-      "args": ["-y", "@shopify/dev-mcp@latest"]
-    },
-    "shopify-store-mcp": {
-      "command": "node",
-      "args": ["mcp-server/index.js"],
-      "env": {
-        "SHOPIFY_STORE_DOMAIN": "your-store.myshopify.com",
-        "SHOPIFY_ACCESS_TOKEN": "shpat_xxxxx"
-      }
-    }
-  }
-}
-```
-
-### 5. Start development
-
-```bash
-# Start the Shopify app
-npm run dev
-
-# Or start only the MCP servers
-npm run mcp:start   # Official Shopify Dev MCP
-npm run mcp:dev     # Custom store MCP
-```
-
-## AI Tool Configuration
-
-### Claude Code
-
-```bash
+# Or manually:
 claude mcp add shopify-dev-mcp -- npx -y @shopify/dev-mcp@latest
 claude mcp add shopify-store-mcp -- node mcp-server/index.js
 ```
 
-### Claude Desktop
+## Deploy to Shopify Partner Dashboard
 
-Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) and add the `mcpServers` block shown above.
-
-### Cursor
-
-Go to **Cursor > Settings > Cursor Settings > Tools and integrations > New MCP server** and add both servers. Or use the `.cursor/mcp.json` generated by `npm run setup`.
-
-### VS Code
-
-The `.vscode/mcp.json` generated by `npm run setup` is picked up automatically.
+1. Create an app in your [Shopify Partner Dashboard](https://partners.shopify.com/)
+2. Update `shopify.app.toml` with your `client_id`
+3. Run `shopify app deploy` to deploy the app + theme extension
+4. Install on any development or production store
 
 ## Project Structure
 
 ```
-├── app/                          # Remix app
+├── app/
+│   ├── lib/ai-discovery/           # Core AI discovery engine
+│   │   ├── llms-txt-generator.server.js
+│   │   ├── structured-data-generator.server.js
+│   │   ├── robots-txt-generator.server.js
+│   │   ├── faq-generator.server.js
+│   │   ├── keyword-generator.server.js
+│   │   └── readiness-score.server.js
 │   ├── routes/
-│   │   ├── _index.jsx            # Login page
-│   │   ├── app.jsx               # App shell with Polaris
-│   │   ├── app._index.jsx        # Dashboard
-│   │   ├── app.mcp-status.jsx    # MCP server status page
-│   │   ├── auth.$.jsx            # Auth callback
-│   │   ├── auth.login/           # Login form
-│   │   └── webhooks.jsx          # Webhook handlers
-│   ├── shopify.server.js         # Shopify auth config
-│   └── db.server.js              # Prisma client
-├── mcp-server/                   # Custom MCP server
-│   ├── index.js                  # Server entry point
-│   ├── tools.js                  # Tool definitions & handlers
-│   ├── prompts.js                # Prompt definitions
-│   └── shopify-client.js         # Shopify API client
-├── prisma/
-│   └── schema.prisma             # Database schema
-├── scripts/
-│   └── setup-mcp.js              # MCP config generator
-├── .mcp.json                     # Project MCP config
-├── shopify.app.toml              # Shopify CLI config
+│   │   ├── app._index.jsx          # AI Readiness Score dashboard
+│   │   ├── app.llms-txt.jsx        # llms.txt generator page
+│   │   ├── app.structured-data.jsx # Structured data config
+│   │   ├── app.faqs.jsx            # FAQ generator page
+│   │   ├── app.keywords.jsx        # Keywords & synonyms page
+│   │   ├── app.robots-txt.jsx      # robots.txt config page
+│   │   ├── app.mcp-status.jsx      # MCP server status
+│   │   ├── api.llms-txt.js         # Public llms.txt API
+│   │   ├── api.structured-data.js  # Public schema API
+│   │   └── api.faqs.js             # Public FAQ API
+├── extensions/
+│   └── ai-discovery-theme/         # Theme app extension
+│       ├── blocks/
+│       │   ├── structured-data.liquid
+│       │   └── conversational-faq.liquid
+│       └── shopify.extension.toml
+├── mcp-server/                     # MCP server (14 tools)
+│   ├── index.js
+│   ├── tools.js
+│   ├── prompts.js
+│   └── shopify-client.js
+├── prisma/schema.prisma            # DB schema (7 models)
+├── .mcp.json                       # MCP config
+├── shopify.app.toml                # Shopify CLI config
 └── package.json
 ```
 
-## Development
+## Monetization
 
-```bash
-# Start full app with Shopify CLI
-shopify app dev
-
-# Run only the custom MCP server (stdio mode)
-npm run mcp:dev
-
-# Generate MCP configs for all AI tools
-npm run setup
-```
+- **Free tier:** AI Readiness Score (viral sharing)
+- **Pro ($79/mo):** llms.txt, structured data, robots.txt, FAQs
+- **Enterprise ($149/mo):** Everything + keyword expansion, MCP server, priority support
 
 ## Resources
 
-- [Shopify Dev MCP docs](https://shopify.dev/docs/apps/build/devmcp)
-- [Storefront MCP docs](https://shopify.dev/docs/apps/build/storefront-mcp)
-- [Model Context Protocol spec](https://modelcontextprotocol.io/)
-- [Shopify CLI docs](https://shopify.dev/docs/apps/tools/cli)
-- [@shopify/shopify-app-remix](https://github.com/Shopify/shopify-app-js/tree/main/packages/apps/shopify-app-remix)
+- [llms.txt spec](https://llmstxt.org/)
+- [Shopify Dev MCP](https://shopify.dev/docs/apps/build/devmcp)
+- [Schema.org Product](https://schema.org/Product)
+- [GEO (Generative Engine Optimization)](https://backlinko.com/generative-engine-optimization-geo)

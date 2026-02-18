@@ -1,0 +1,19 @@
+# Theme App Extension — AI Discovery Optimizer
+# Injects structured data (JSON-LD) and conversational FAQs into the storefront.
+
+api_version = "2025-01"
+
+[[extensions]]
+name = "AI Discovery Optimizer"
+handle = "ai-discovery-theme"
+type = "theme"
+
+  [[extensions.blocks]]
+  name = "AI Structured Data"
+  handle = "structured-data"
+  template = "blocks/structured-data.liquid"
+
+  [[extensions.blocks]]
+  name = "AI Conversational FAQ"
+  handle = "conversational-faq"
+  template = "blocks/conversational-faq.liquid"

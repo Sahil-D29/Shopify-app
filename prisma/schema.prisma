@@ -24,3 +24,95 @@ model Session {
   collaborator  Boolean?  @default(false)
   emailVerified Boolean?  @default(false)
 }
+
+// Per-shop AI readiness score
+model AiReadinessScore {
+  id                  String   @id @default(uuid())
+  shop                String   @unique
+  overallScore        Int      @default(0)
+  llmsTxtScore        Int      @default(0)
+  structuredDataScore Int      @default(0)
+  robotsTxtScore      Int      @default(0)
+  faqScore            Int      @default(0)
+  contentScore        Int      @default(0)
+  metadataScore       Int      @default(0)
+  lastScanAt          DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// Generated llms.txt content per shop
+model LlmsTxt {
+  id          String   @id @default(uuid())
+  shop        String   @unique
+  content     String
+  fullContent String?
+  autoSync    Boolean  @default(true)
+  lastSyncAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// FAQ entries per product, collection, or store-level
+model FaqEntry {
+  id           String   @id @default(uuid())
+  shop         String
+  resourceType String
+  resourceId   String?
+  question     String
+  answer       String
+  keywords     String
+  sortOrder    Int      @default(0)
+  published    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([shop, resourceType])
+  @@index([shop, resourceId])
+}
+
+// Structured data JSON-LD config per shop
+model StructuredDataConfig {
+  id                   String   @id @default(uuid())
+  shop                 String   @unique
+  enableProduct        Boolean  @default(true)
+  enableFaq            Boolean  @default(true)
+  enableOrganization   Boolean  @default(true)
+  enableBreadcrumb     Boolean  @default(true)
+  enableReviews        Boolean  @default(true)
+  enableSitelinks      Boolean  @default(true)
+  customOrgName        String?
+  customOrgDescription String?
+  customOrgLogo        String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+// Robots.txt AI crawler config per shop
+model RobotsTxtConfig {
+  id                  String   @id @default(uuid())
+  shop                String   @unique
+  allowGPTBot         Boolean  @default(true)
+  allowClaudeBot      Boolean  @default(true)
+  allowPerplexityBot  Boolean  @default(true)
+  allowGoogleExtended Boolean  @default(true)
+  allowCohereBot      Boolean  @default(true)
+  allowMetaBot        Boolean  @default(true)
+  customRules         String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// Keyword/synonym mappings for products
+model KeywordMapping {
+  id                    String   @id @default(uuid())
+  shop                  String
+  resourceId            String
+  primaryTerm           String
+  synonyms              String
+  conversationalPhrases String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([shop, resourceId])
+}

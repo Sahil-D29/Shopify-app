@@ -1,4 +1,4 @@
-import { Outlet, useLoaderData, useRouteError } from "@remix-run/react";
+import { Outlet, useLoaderData } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import { AppProvider as PolarisAppProvider } from "@shopify/polaris";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
@@ -13,12 +13,15 @@ export const loader = async ({ request }) => {
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData();
-
   return (
-    <PolarisAppProvider i18n={{}} >
+    <PolarisAppProvider i18n={{}}>
       <ui-nav-menu>
-        <a href="/app" rel="home">Home</a>
+        <a href="/app" rel="home">AI Readiness Score</a>
+        <a href="/app/llms-txt">llms.txt</a>
+        <a href="/app/structured-data">Structured Data</a>
+        <a href="/app/faqs">Conversational FAQs</a>
+        <a href="/app/keywords">Keywords & Synonyms</a>
+        <a href="/app/robots-txt">robots.txt</a>
         <a href="/app/mcp-status">MCP Status</a>
       </ui-nav-menu>
       <Outlet />

@@ -1,8 +1,8 @@
-# Shopify CLI configuration
+# Shopify CLI configuration — AI Discovery Optimizer
 # Learn more: https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "YOUR_CLIENT_ID"
-name = "shopify-cli-mcp-app"
+name = "AI Discovery Optimizer"
 application_url = "https://your-app-url.com"
 
 [build]
@@ -19,8 +19,20 @@ redirect_urls = [
 [webhooks]
 api_version = "2025-01"
 
+  [[webhooks.subscriptions]]
+  topics = ["app/uninstalled"]
+  uri = "/webhooks"
+
+  [[webhooks.subscriptions]]
+  topics = ["products/update", "products/create", "products/delete"]
+  uri = "/webhooks"
+
+  [[webhooks.subscriptions]]
+  topics = ["collections/update", "collections/create"]
+  uri = "/webhooks"
+
 [access_scopes]
-scopes = "read_products,write_products,read_orders,read_customers"
+scopes = "read_products,write_products,read_orders,read_customers,read_content,write_content,read_themes,write_themes"
 
 [pos]
 embedded = false

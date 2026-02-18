@@ -1,0 +1,142 @@
+{% comment %}
+  AI Discovery Optimizer — Conversational FAQ Block
+  Renders FAQ content with Schema.org FAQPage markup for AI agents.
+  Merchants can add this block to product pages, collection pages, or any page.
+{% endcomment %}
+
+{% if block.settings.show_faq_ui %}
+<div class="ai-discovery-faq" style="margin: 2rem 0;">
+  <h2 style="margin-bottom: 1rem; font-size: 1.25rem; font-weight: 600;">
+    {{ block.settings.faq_heading | default: 'Frequently Asked Questions' }}
+  </h2>
+
+  {% if template.name == 'product' %}
+    {% assign faq_items = product.metafields.ai_discovery.faqs.value %}
+  {% endif %}
+
+  {% comment %} Fallback: auto-generated FAQs from product data {% endcomment %}
+  {% if template.name == 'product' %}
+    <details style="margin-bottom: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0;">
+      <summary style="padding: 1rem; cursor: pointer; font-weight: 500;">
+        What is the {{ product.title }}?
+      </summary>
+      <div style="padding: 0 1rem 1rem;">
+        {{ product.title }}{% if product.vendor != blank %} by {{ product.vendor }}{% endif %}
+        is {% if product.type != blank %}a {{ product.type | downcase }}{% else %}a product{% endif %}
+        available at {{ shop.name }}.
+        {% if product.description != blank %}
+          {{ product.description | strip_html | truncate: 300 }}
+        {% endif %}
+      </div>
+    </details>
+
+    <details style="margin-bottom: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0;">
+      <summary style="padding: 1rem; cursor: pointer; font-weight: 500;">
+        How much does the {{ product.title }} cost?
+      </summary>
+      <div style="padding: 0 1rem 1rem;">
+        {% if product.price_varies %}
+          The {{ product.title }} ranges from {{ product.price_min | money }} to {{ product.price_max | money }}.
+        {% else %}
+          The {{ product.title }} costs {{ product.price | money }}.
+        {% endif %}
+      </div>
+    </details>
+
+    <details style="margin-bottom: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0;">
+      <summary style="padding: 1rem; cursor: pointer; font-weight: 500;">
+        Is the {{ product.title }} in stock?
+      </summary>
+      <div style="padding: 0 1rem 1rem;">
+        {% if product.available %}
+          Yes, the {{ product.title }} is currently in stock and available for purchase.
+        {% else %}
+          The {{ product.title }} is currently out of stock. Please check back soon.
+        {% endif %}
+      </div>
+    </details>
+
+    {% if product.variants.size > 1 %}
+    <details style="margin-bottom: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0;">
+      <summary style="padding: 1rem; cursor: pointer; font-weight: 500;">
+        What options are available for the {{ product.title }}?
+      </summary>
+      <div style="padding: 0 1rem 1rem;">
+        The {{ product.title }} comes in {{ product.variants.size }} options:
+        {% for variant in product.variants %}
+          {{ variant.title }} ({{ variant.price | money }}){% unless forloop.last %}, {% endunless %}
+        {% endfor %}.
+      </div>
+    </details>
+    {% endif %}
+
+    <details style="margin-bottom: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0;">
+      <summary style="padding: 1rem; cursor: pointer; font-weight: 500;">
+        Does {{ shop.name }} ship the {{ product.title }}?
+      </summary>
+      <div style="padding: 0 1rem 1rem;">
+        Yes, {{ shop.name }} ships the {{ product.title }}.
+        Check our <a href="{{ shop.url }}/policies/shipping-policy">shipping policy</a> for delivery times and rates.
+      </div>
+    </details>
+  {% endif %}
+</div>
+{% endif %}
+
+{% comment %} FAQ Schema (always injected for AI agents, even if UI is hidden) {% endcomment %}
+{% if template.name == 'product' %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": {{ "What is the " | append: product.title | append: "?" | json }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {{ product.title | append: " " | append: product.description | strip_html | truncate: 500 | json }}
+      }
+    },
+    {
+      "@type": "Question",
+      "name": {{ "How much does the " | append: product.title | append: " cost?" | json }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {{ product.title | append: " costs " | append: product.price | money | append: "." | json }}
+      }
+    },
+    {
+      "@type": "Question",
+      "name": {{ "Is the " | append: product.title | append: " in stock?" | json }},
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": {% if product.available %}{{ "Yes, " | append: product.title | append: " is currently in stock." | json }}{% else %}{{ product.title | append: " is currently out of stock." | json }}{% endif %}
+      }
+    }
+  ]
+}
+</script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "AI Conversational FAQ",
+  "target": "section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_faq_ui",
+      "label": "Show FAQ section to visitors",
+      "default": true,
+      "info": "FAQ schema markup is always injected for AI agents even if UI is hidden."
+    },
+    {
+      "type": "text",
+      "id": "faq_heading",
+      "label": "FAQ Heading",
+      "default": "Frequently Asked Questions"
+    }
+  ]
+}
+{% endschema %}
