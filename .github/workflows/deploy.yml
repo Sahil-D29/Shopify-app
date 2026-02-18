@@ -1,0 +1,37 @@
+# Deploy AI Discovery Optimizer to Shopify Partner Dashboard
+# Triggers on push to main branch
+# Requires these GitHub Secrets:
+#   SHOPIFY_CLI_PARTNERS_TOKEN — your Partner API token
+
+name: Deploy to Shopify
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  deploy:
+    name: Deploy App & Extensions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Deploy to Shopify
+        env:
+          SHOPIFY_CLI_PARTNERS_TOKEN: ${{ secrets.SHOPIFY_CLI_PARTNERS_TOKEN }}
+        run: npx shopify app deploy --force
