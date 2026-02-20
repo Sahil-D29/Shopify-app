@@ -6,6 +6,9 @@ api_version = "2025-01"
 [[extensions]]
 name = "AI Discovery Optimizer"
 handle = "ai-discovery-theme"
+
+uid = "6235832e-ec42-aa97-ee1e-f478d075ab16620396ce"
+
 type = "theme"
 
   [[extensions.blocks]]

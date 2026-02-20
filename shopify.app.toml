@@ -4,6 +4,7 @@
 client_id = "e4167b09896f52653ae8bfb1b95621cb"
 name = "AI Discovery Optimizer"
 application_url = "https://localhost:3000"
+embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
@@ -18,18 +19,6 @@ redirect_urls = [
 
 [webhooks]
 api_version = "2025-01"
-
-  [[webhooks.subscriptions]]
-  topics = ["app/uninstalled"]
-  uri = "/webhooks"
-
-  [[webhooks.subscriptions]]
-  topics = ["products/update", "products/create", "products/delete"]
-  uri = "/webhooks"
-
-  [[webhooks.subscriptions]]
-  topics = ["collections/update", "collections/create"]
-  uri = "/webhooks"
 
 [access_scopes]
 scopes = "read_products,write_products,read_orders,read_customers,read_content,write_content,read_themes,write_themes"
