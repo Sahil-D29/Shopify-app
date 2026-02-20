@@ -3,9 +3,8 @@
  * Accessible at /api/llms-txt (no auth required).
  * Merchants link this from their storefront proxy.
  */
-import prisma from "../db.server";
-
 export const loader = async ({ request }) => {
+  const { default: prisma } = await import("../db.server");
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop");
 

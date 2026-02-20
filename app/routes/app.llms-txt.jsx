@@ -4,15 +4,10 @@ import {
   Page, Layout, Card, BlockStack, Text, Button, Banner, Box,
 } from "@shopify/polaris";
 
-import { authenticate } from "../shopify.server";
-import prisma from "../db.server";
-import {
-  fetchStoreData,
-  generateLlmsTxt,
-  generateLlmsFullTxt,
-} from "../lib/ai-discovery/llms-txt-generator.server";
-
 export const loader = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
+  const { default: prisma } = await import("../db.server");
+
   const { session } = await authenticate.admin(request);
   const existing = await prisma.llmsTxt.findUnique({
     where: { shop: session.shop },
@@ -21,6 +16,10 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
+  const { default: prisma } = await import("../db.server");
+  const { fetchStoreData, generateLlmsTxt, generateLlmsFullTxt } = await import("../lib/ai-discovery/llms-txt-generator.server");
+
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
 

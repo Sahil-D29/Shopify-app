@@ -17,14 +17,12 @@ import {
   InlineGrid,
 } from "@shopify/polaris";
 
-import { authenticate } from "../shopify.server";
-import prisma from "../db.server";
-import {
-  calculateReadinessScore,
-  getGrade,
-} from "../lib/ai-discovery/readiness-score.server";
+import { getGrade } from "../lib/ai-discovery/readiness-utils";
 
 export const loader = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
+  const { default: prisma } = await import("../db.server");
+
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
 
@@ -64,6 +62,10 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
+  const { default: prisma } = await import("../db.server");
+  const { calculateReadinessScore } = await import("../lib/ai-discovery/readiness-score.server");
+
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
 

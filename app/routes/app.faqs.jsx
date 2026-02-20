@@ -4,16 +4,10 @@ import {
   Page, Layout, Card, BlockStack, Text, Button, Banner, DataTable, Badge,
 } from "@shopify/polaris";
 
-import { authenticate } from "../shopify.server";
-import prisma from "../db.server";
-import {
-  generateProductFaqs,
-  generateStoreFaqs,
-  generateCollectionFaqs,
-} from "../lib/ai-discovery/faq-generator.server";
-import { fetchStoreData } from "../lib/ai-discovery/llms-txt-generator.server";
-
 export const loader = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
+  const { default: prisma } = await import("../db.server");
+
   const { session } = await authenticate.admin(request);
   const shop = session.shop;
 
@@ -33,6 +27,11 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
+  const { default: prisma } = await import("../db.server");
+  const { generateProductFaqs, generateStoreFaqs, generateCollectionFaqs } = await import("../lib/ai-discovery/faq-generator.server");
+  const { fetchStoreData } = await import("../lib/ai-discovery/llms-txt-generator.server");
+
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
   const formData = await request.formData();

@@ -1,6 +1,5 @@
-import { authenticate } from "../shopify.server";
-
 export const action = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
   const { topic, shop, session, admin } = await authenticate.webhook(request);
 
   if (!admin) {

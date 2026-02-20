@@ -6,39 +6,11 @@
  * while blocking sensitive areas.
  */
 
-// Known AI crawler user agents
-export const AI_CRAWLERS = [
-  {
-    key: "allowGPTBot",
-    userAgent: "GPTBot",
-    description: "OpenAI — ChatGPT shopping and search",
-  },
-  {
-    key: "allowClaudeBot",
-    userAgent: "ClaudeBot",
-    description: "Anthropic — Claude AI assistant",
-  },
-  {
-    key: "allowPerplexityBot",
-    userAgent: "PerplexityBot",
-    description: "Perplexity AI — conversational search and shopping",
-  },
-  {
-    key: "allowGoogleExtended",
-    userAgent: "Google-Extended",
-    description: "Google — Gemini AI and AI Overviews",
-  },
-  {
-    key: "allowCohereBot",
-    userAgent: "cohere-ai",
-    description: "Cohere — enterprise AI",
-  },
-  {
-    key: "allowMetaBot",
-    userAgent: "FacebookBot",
-    description: "Meta — Llama AI and social crawling",
-  },
-];
+// Import shared AI crawler definitions
+import { AI_CRAWLERS } from "./ai-crawlers.js";
+
+// Re-export for backward compatibility
+export { AI_CRAWLERS };
 
 // Paths that should always be blocked (security/privacy)
 const ALWAYS_BLOCKED = [

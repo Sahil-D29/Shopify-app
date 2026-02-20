@@ -3,11 +3,10 @@ import { json } from "@remix-run/node";
 import { AppProvider as PolarisAppProvider } from "@shopify/polaris";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
-import { authenticate } from "../shopify.server";
-
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
   await authenticate.admin(request);
   return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
 };

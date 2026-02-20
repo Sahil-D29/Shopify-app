@@ -6,14 +6,13 @@ import {
 } from "@shopify/polaris";
 import { useState } from "react";
 
-import { authenticate } from "../shopify.server";
-import prisma from "../db.server";
-import {
-  generateRobotsTxt,
-  AI_CRAWLERS,
-} from "../lib/ai-discovery/robots-txt-generator.server";
+import { AI_CRAWLERS } from "../lib/ai-discovery/ai-crawlers";
 
 export const loader = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
+  const { default: prisma } = await import("../db.server");
+  const { generateRobotsTxt } = await import("../lib/ai-discovery/robots-txt-generator.server");
+
   const { session } = await authenticate.admin(request);
   const config = await prisma.robotsTxtConfig.findUnique({
     where: { shop: session.shop },
@@ -25,6 +24,10 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
+  const { default: prisma } = await import("../db.server");
+  const { generateRobotsTxt } = await import("../lib/ai-discovery/robots-txt-generator.server");
+
   const { session } = await authenticate.admin(request);
   const shop = session.shop;
   const formData = await request.formData();

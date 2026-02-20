@@ -11,9 +11,8 @@ import {
   Box,
   Divider,
 } from "@shopify/polaris";
-import { authenticate } from "../shopify.server";
-
 export const loader = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
   await authenticate.admin(request);
 
   // Check MCP server configurations
