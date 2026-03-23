@@ -14,7 +14,10 @@ dev_store_url = "tsg-api.myshopify.com"
 redirect_urls = [
   "https://localhost:3000/auth/callback",
   "https://localhost:3000/auth/shopify/callback",
-  "https://localhost:3000/api/auth/callback"
+  "https://localhost:3000/api/auth/callback",
+  "https://shopify-app-azure.vercel.app/auth/callback",
+  "https://shopify-app-azure.vercel.app/auth/shopify/callback",
+  "https://shopify-app-azure.vercel.app/api/auth/callback"
 ]
 
 [webhooks]
@@ -22,18 +25,6 @@ api_version = "2025-01"
 
   [[webhooks.subscriptions]]
   topics = ["app/uninstalled"]
-  uri = "/webhooks"
-
-  [[webhooks.subscriptions]]
-  topics = ["customers/data_request"]
-  uri = "/webhooks"
-
-  [[webhooks.subscriptions]]
-  topics = ["customers/redact"]
-  uri = "/webhooks"
-
-  [[webhooks.subscriptions]]
-  topics = ["shop/redact"]
   uri = "/webhooks"
 
 [access_scopes]
