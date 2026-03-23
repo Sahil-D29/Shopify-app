@@ -3,7 +3,7 @@
 
 client_id = "e4167b09896f52653ae8bfb1b95621cb"
 name = "AI Discovery Optimizer"
-application_url = "https://localhost:3000"
+application_url = "https://shopify-app-azure.vercel.app"
 embedded = true
 
 [build]
