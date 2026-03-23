@@ -22,7 +22,6 @@ export const loader = async ({ request }) => {
       name
       myshopifyDomain
       primaryDomain { url host }
-      brand { shortDescription }
       description
       contactEmail
       currencyCode

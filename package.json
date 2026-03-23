@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "description": "AI Discovery Optimization for Shopify — make your store visible to ChatGPT, Perplexity, Google AI and other AI shopping agents",
+  "author": "Dorec",
+  "license": "UNLICENSED",
+  "keywords": ["shopify", "ai", "seo", "geo", "aeo", "ai-discovery", "llms-txt", "structured-data"],
   "scripts": {
     "dev": "shopify app dev",
     "build": "remix vite:build",

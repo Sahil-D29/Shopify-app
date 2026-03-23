@@ -18,10 +18,6 @@ export async function fetchStoreData(admin) {
         description
         myshopifyDomain
         primaryDomain { url host }
-        brand {
-          shortDescription
-          slogan
-        }
         shipsToCountries
         currencyCode
         contactEmail

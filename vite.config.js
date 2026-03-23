@@ -16,6 +16,7 @@ const isDev = process.env.NODE_ENV !== "production";
 export default defineConfig({
   server: {
     port: Number(process.env.PORT || 3000),
+    allowedHosts: true,
     ...(isDev
       ? {
           hmr: {

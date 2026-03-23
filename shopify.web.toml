@@ -1,0 +1,6 @@
+[commands]
+dev = "npx remix vite:dev"
+build = "npx remix vite:build"
+
+[auth]
+login_path = "/auth/login"

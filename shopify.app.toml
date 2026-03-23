@@ -20,6 +20,22 @@ redirect_urls = [
 [webhooks]
 api_version = "2025-01"
 
+  [[webhooks.subscriptions]]
+  topics = ["app/uninstalled"]
+  uri = "/webhooks"
+
+  [[webhooks.subscriptions]]
+  topics = ["customers/data_request"]
+  uri = "/webhooks"
+
+  [[webhooks.subscriptions]]
+  topics = ["customers/redact"]
+  uri = "/webhooks"
+
+  [[webhooks.subscriptions]]
+  topics = ["shop/redact"]
+  uri = "/webhooks"
+
 [access_scopes]
 scopes = "read_products,write_products,read_orders,read_customers,read_content,write_content,read_themes,write_themes"
 

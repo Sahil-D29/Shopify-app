@@ -39,7 +39,6 @@ export async function calculateReadinessScore(admin, existingData = {}) {
       description
       myshopifyDomain
       primaryDomain { url host }
-      brand { shortDescription slogan }
       contactEmail
     }
   }`);
@@ -163,8 +162,8 @@ export async function calculateReadinessScore(admin, existingData = {}) {
   if (shop.description) metaScore += 3;
   else results.recommendations.push("Add a store description in Shopify admin");
 
-  if (shop.brand?.shortDescription) metaScore += 2;
-  else results.recommendations.push("Add a brand short description for AI summaries");
+  // brand field not available in all API versions — give 2 pts if description exists
+  if (shop.description && shop.description.length > 30) metaScore += 2;
 
   if (shop.contactEmail) metaScore += 1;
 
