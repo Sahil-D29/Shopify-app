@@ -1,4 +1,6 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaLibSQL } from "@prisma/adapter-libsql";
+import { createClient } from "@libsql/client";
 
 let prisma;
 
@@ -7,10 +9,6 @@ function getPrismaClient() {
 
   if (process.env.TURSO_DATABASE_URL) {
     // Production / Vercel: use Turso via libSQL driver adapter
-    // Use require() to avoid top-level await issues with esbuild
-    const { PrismaLibSQL } = require("@prisma/adapter-libsql");
-    const { createClient } = require("@libsql/client");
-
     const libsql = createClient({
       url: process.env.TURSO_DATABASE_URL,
       authToken: process.env.TURSO_AUTH_TOKEN,

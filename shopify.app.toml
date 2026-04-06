@@ -3,7 +3,7 @@
 
 client_id = "e4167b09896f52653ae8bfb1b95621cb"
 name = "AI Discovery Optimizer"
-application_url = "https://shopify-app-azure.vercel.app"
+application_url = "https://ai-seo.dorec.in"
 embedded = true
 
 [build]
@@ -15,9 +15,9 @@ redirect_urls = [
   "https://localhost:3000/auth/callback",
   "https://localhost:3000/auth/shopify/callback",
   "https://localhost:3000/api/auth/callback",
-  "https://shopify-app-azure.vercel.app/auth/callback",
-  "https://shopify-app-azure.vercel.app/auth/shopify/callback",
-  "https://shopify-app-azure.vercel.app/api/auth/callback"
+  "https://ai-seo.dorec.in/auth/callback",
+  "https://ai-seo.dorec.in/auth/shopify/callback",
+  "https://ai-seo.dorec.in/api/auth/callback"
 ]
 
 [webhooks]
