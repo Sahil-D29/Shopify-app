@@ -14,6 +14,7 @@
  */
 
 import { analyzeRobotsTxt } from "./robots-txt-generator.server.js";
+import { getGrade } from "./readiness-utils.js";
 
 /**
  * Calculate the full AI readiness score for a store.
@@ -38,7 +39,6 @@ export async function calculateReadinessScore(admin, existingData = {}) {
       description
       myshopifyDomain
       primaryDomain { url host }
-      brand { shortDescription slogan }
       contactEmail
     }
   }`);
@@ -162,8 +162,8 @@ export async function calculateReadinessScore(admin, existingData = {}) {
   if (shop.description) metaScore += 3;
   else results.recommendations.push("Add a store description in Shopify admin");
 
-  if (shop.brand?.shortDescription) metaScore += 2;
-  else results.recommendations.push("Add a brand short description for AI summaries");
+  // brand field not available in all API versions — give 2 pts if description exists
+  if (shop.description && shop.description.length > 30) metaScore += 2;
 
   if (shop.contactEmail) metaScore += 1;
 
@@ -202,14 +202,5 @@ export async function calculateReadinessScore(admin, existingData = {}) {
   return results;
 }
 
-/**
- * Get a letter grade from the score.
- */
-export function getGrade(score) {
-  if (score >= 90) return { grade: "A+", label: "Excellent", tone: "success" };
-  if (score >= 80) return { grade: "A", label: "Great", tone: "success" };
-  if (score >= 70) return { grade: "B", label: "Good", tone: "info" };
-  if (score >= 60) return { grade: "C", label: "Fair", tone: "warning" };
-  if (score >= 40) return { grade: "D", label: "Needs Work", tone: "warning" };
-  return { grade: "F", label: "Critical", tone: "critical" };
-}
+// Re-export getGrade from shared utils for backward compatibility
+export { getGrade } from "./readiness-utils.js";

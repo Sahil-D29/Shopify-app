@@ -12,17 +12,17 @@ import {
 } from "@shopify/polaris";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
-import { login } from "../../shopify.server";
-
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
+  const { login } = await import("../../shopify.server");
   const errors = login(request);
 
   return json({ errors, polarisTranslations: {} });
 };
 
 export const action = async ({ request }) => {
+  const { login } = await import("../../shopify.server");
   const errors = await login(request);
 
   return json({ errors });

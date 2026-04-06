@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -115,4 +116,75 @@ model KeywordMapping {
   updatedAt             DateTime @updatedAt
 
   @@index([shop, resourceId])
+}
+
+// Shop billing plan tracking
+model ShopPlan {
+  id          String    @id @default(uuid())
+  shop        String    @unique
+  plan        String    @default("Free")
+  chargeId    String?
+  activatedAt DateTime?
+  trialEndsAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Onboarding wizard state per shop
+model OnboardingState {
+  id             String    @id @default(uuid())
+  shop           String    @unique
+  completedSteps String    @default("")
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+// Per-resource SEO audit results
+model SeoAudit {
+  id              String   @id @default(uuid())
+  shop            String
+  resourceType    String
+  resourceId      String
+  resourceTitle   String
+  seoTitle        String?
+  seoDescription  String?
+  seoTitleScore   Int      @default(0)
+  seoDescScore    Int      @default(0)
+  imageAltScore   Int      @default(0)
+  contentScore    Int      @default(0)
+  issues          String?
+  lastAuditAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([shop, resourceType])
+  @@unique([shop, resourceId])
+}
+
+// Per-resource GEO optimization data
+model GeoOptimization {
+  id              String   @id @default(uuid())
+  shop            String
+  resourceType    String
+  resourceId      String?
+  citationSnippet String?
+  authorityScore  Int      @default(0)
+  geoReadiness    Int      @default(0)
+  issues          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([shop, resourceType])
+}
+
+// Historical score tracking for trend charts
+model ScoreHistory {
+  id         String   @id @default(uuid())
+  shop       String
+  scoreType  String
+  score      Int
+  recordedAt DateTime @default(now())
+
+  @@index([shop, scoreType, recordedAt])
 }

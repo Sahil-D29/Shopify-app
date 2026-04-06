@@ -2,9 +2,14 @@
  * Public API endpoint for structured data.
  * Returns JSON-LD schemas for a given product or homepage.
  */
-import prisma from "../db.server";
+import { rateLimitResponse } from "../lib/rate-limiter.server";
 
 export const loader = async ({ request }) => {
+  // Rate limiting
+  const rateLimited = rateLimitResponse(request, "structured-data");
+  if (rateLimited) return rateLimited;
+
+  const { default: prisma } = await import("../db.server");
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop");
   const type = url.searchParams.get("type") || "homepage"; // "homepage" or "product"

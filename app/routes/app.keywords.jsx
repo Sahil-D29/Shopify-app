@@ -4,11 +4,10 @@ import {
   Page, Layout, Card, BlockStack, Text, Button, Banner, DataTable,
 } from "@shopify/polaris";
 
-import { authenticate } from "../shopify.server";
-import prisma from "../db.server";
-import { generateKeywordMapping } from "../lib/ai-discovery/keyword-generator.server";
-
 export const loader = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
+  const { default: prisma } = await import("../db.server");
+
   const { session } = await authenticate.admin(request);
   const mappings = await prisma.keywordMapping.findMany({
     where: { shop: session.shop },
@@ -19,6 +18,10 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
+  const { default: prisma } = await import("../db.server");
+  const { generateKeywordMapping } = await import("../lib/ai-discovery/keyword-generator.server");
+
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
 

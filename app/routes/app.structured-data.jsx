@@ -6,15 +6,11 @@ import {
 } from "@shopify/polaris";
 import { useState } from "react";
 
-import { authenticate } from "../shopify.server";
-import prisma from "../db.server";
-import {
-  generateHomepageSchemas,
-  generateProductSchema,
-  generateFaqSchema,
-} from "../lib/ai-discovery/structured-data-generator.server";
-
 export const loader = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
+  const { default: prisma } = await import("../db.server");
+  const { generateHomepageSchemas, generateProductSchema } = await import("../lib/ai-discovery/structured-data-generator.server");
+
   const { admin, session } = await authenticate.admin(request);
   const config = await prisma.structuredDataConfig.findUnique({
     where: { shop: session.shop },
@@ -26,7 +22,6 @@ export const loader = async ({ request }) => {
       name
       myshopifyDomain
       primaryDomain { url host }
-      brand { shortDescription }
       description
       contactEmail
       currencyCode
@@ -67,6 +62,9 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
+  const { authenticate } = await import("../shopify.server");
+  const { default: prisma } = await import("../db.server");
+
   const { session } = await authenticate.admin(request);
   const formData = await request.formData();
   const shop = session.shop;
