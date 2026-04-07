@@ -30,6 +30,7 @@ function getPrismaClient() {
             method: input.method,
             headers,
             body: input.body,
+            duplex: input.body ? "half" : undefined,
             ...init,
           });
         }
