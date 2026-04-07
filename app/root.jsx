@@ -7,7 +7,7 @@ import {
 } from "@remix-run/react";
 
 export const loader = async () => {
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  return { apiKey: process.env.SHOPIFY_API_KEY?.trim() || "" };
 };
 
 export default function App() {
@@ -19,7 +19,7 @@ export default function App() {
         <link rel="preconnect" href="https://cdn.shopify.com/" />
         <script
           src="https://cdn.shopify.com/shopifycloud/app-bridge.js"
-          data-api-key={process.env.SHOPIFY_API_KEY || ""}
+          data-api-key={process.env.SHOPIFY_API_KEY?.trim() || ""}
         ></script>
         <Meta />
         <Links />

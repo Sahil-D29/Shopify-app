@@ -9,7 +9,7 @@ export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
   await authenticate.admin(request);
-  return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
+  return json({ apiKey: process.env.SHOPIFY_API_KEY?.trim() || "" });
 };
 
 export const headers = (headersArgs) => boundary.headers(headersArgs);
