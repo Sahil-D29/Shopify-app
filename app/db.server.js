@@ -10,8 +10,8 @@ function getPrismaClient() {
   if (process.env.TURSO_DATABASE_URL) {
     // Production / Vercel: use Turso via libSQL driver adapter
     const libsql = createClient({
-      url: process.env.TURSO_DATABASE_URL,
-      authToken: process.env.TURSO_AUTH_TOKEN,
+      url: process.env.TURSO_DATABASE_URL.trim(),
+      authToken: process.env.TURSO_AUTH_TOKEN?.trim(),
     });
     const adapter = new PrismaLibSQL(libsql);
     prisma = new PrismaClient({ adapter });
