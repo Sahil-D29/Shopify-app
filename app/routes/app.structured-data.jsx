@@ -2,19 +2,40 @@ import { json } from "@remix-run/node";
 import { useLoaderData, useSubmit, useNavigation, useActionData } from "@remix-run/react";
 import {
   Page, Layout, Card, BlockStack, Text, Button, Banner, Checkbox, Box,
-  FormLayout, TextField,
+  FormLayout, TextField, InlineStack,
 } from "@shopify/polaris";
 import { useState } from "react";
+
+function InlineButtonRow({ installed, onInstall, onUninstall, loading }) {
+  return (
+    <InlineStack gap="300">
+      <Button variant="primary" onClick={onInstall} loading={loading}>
+        {installed ? "Reinstall in theme" : "Install in theme"}
+      </Button>
+      {installed && (
+        <Button tone="critical" onClick={onUninstall} loading={loading}>
+          Remove from theme
+        </Button>
+      )}
+    </InlineStack>
+  );
+}
 
 export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
   const { default: prisma } = await import("../db.server");
   const { generateHomepageSchemas, generateProductSchema } = await import("../lib/ai-discovery/structured-data-generator.server");
+  const { isInstalledInTheme } = await import("../lib/theme-injection.server");
 
   const { admin, session } = await authenticate.admin(request);
   const config = await prisma.structuredDataConfig.findUnique({
     where: { shop: session.shop },
   });
+
+  const themeStatus = await isInstalledInTheme(admin).catch(() => ({
+    installed: false,
+    themeName: null,
+  }));
 
   // Fetch a sample product for preview
   const shopRes = await admin.graphql(`{
@@ -58,16 +79,37 @@ export const loader = async ({ request }) => {
       ? JSON.stringify(productSchema, null, 2)
       : null,
     sampleProductTitle: sampleProduct?.title,
+    themeStatus,
   });
 };
 
 export const action = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
   const { default: prisma } = await import("../db.server");
+  const { installInTheme, uninstallFromTheme } = await import("../lib/theme-injection.server");
 
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const formData = await request.formData();
   const shop = session.shop;
+  const intent = formData.get("intent");
+
+  if (intent === "install_theme") {
+    try {
+      const result = await installInTheme(admin);
+      return json({ themeInstalled: true, themeName: result.themeName, alreadyInstalled: result.alreadyInstalled });
+    } catch (e) {
+      return json({ themeError: e.message }, { status: 500 });
+    }
+  }
+
+  if (intent === "uninstall_theme") {
+    try {
+      const result = await uninstallFromTheme(admin);
+      return json({ themeUninstalled: true, themeName: result.themeName });
+    } catch (e) {
+      return json({ themeError: e.message }, { status: 500 });
+    }
+  }
 
   const config = {
     enableProduct: formData.get("enableProduct") === "true",
@@ -91,7 +133,7 @@ export const action = async ({ request }) => {
 };
 
 export default function StructuredDataPage() {
-  const { config, homepageSchemasPreview, productSchemaPreview, sampleProductTitle } = useLoaderData();
+  const { config, homepageSchemasPreview, productSchemaPreview, sampleProductTitle, themeStatus } = useLoaderData();
   const actionData = useActionData();
   const submit = useSubmit();
   const navigation = useNavigation();
@@ -133,6 +175,49 @@ export default function StructuredDataPage() {
             Structured data configuration updated.
           </Banner>
         )}
+
+        {actionData?.themeInstalled && (
+          <Banner tone="success" title={actionData.alreadyInstalled ? "Already installed" : "Installed in theme"}>
+            Schemas {actionData.alreadyInstalled ? "are already" : "have been"} added to <strong>{actionData.themeName}</strong>.
+          </Banner>
+        )}
+        {actionData?.themeUninstalled && (
+          <Banner tone="info" title="Removed from theme">
+            Removed from <strong>{actionData.themeName}</strong>.
+          </Banner>
+        )}
+        {actionData?.themeError && (
+          <Banner tone="critical" title="Theme update failed">
+            <p>{actionData.themeError}</p>
+          </Banner>
+        )}
+
+        <Card>
+          <BlockStack gap="400">
+            <Text as="h2" variant="headingMd">Auto-insert into theme</Text>
+            <Text as="p" variant="bodyMd" tone="subdued">
+              {themeStatus.installed
+                ? `Currently installed in ${themeStatus.themeName}. The snippet renders schemas on every page automatically.`
+                : "One click adds a Liquid snippet to your published theme that emits Organization, WebSite, Product, Collection, and Article schemas on the right pages."}
+            </Text>
+            <InlineButtonRow
+              installed={themeStatus.installed}
+              onInstall={() => {
+                const fd = new FormData();
+                fd.set("intent", "install_theme");
+                submit(fd, { method: "POST" });
+              }}
+              onUninstall={() => {
+                if (confirm("Remove the AI Discovery snippet from your published theme?")) {
+                  const fd = new FormData();
+                  fd.set("intent", "uninstall_theme");
+                  submit(fd, { method: "POST" });
+                }
+              }}
+              loading={isSaving}
+            />
+          </BlockStack>
+        </Card>
 
         <Layout>
           <Layout.Section>

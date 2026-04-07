@@ -19,13 +19,24 @@ export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
   const shop = session.shop;
 
-  await ensureShopPlan(prisma, shop);
-  const currentPlan = await getShopPlan(prisma, shop);
+  let currentPlan = "Free";
+  try {
+    await ensureShopPlan(prisma, shop);
+    currentPlan = await getShopPlan(prisma, shop);
+  } catch (e) {
+    console.error("[settings] ensureShopPlan/getShopPlan failed:", e);
+  }
 
-  // Get data counts for the shop
+  // Get data counts for the shop — wrap each in catch so one failure doesn't 500 the page
   const [faqCount, keywordCount, seoAuditCount, geoCount] = await Promise.all([
-    prisma.faqEntry.count({ where: { shop } }),
-    prisma.keywordMapping.count({ where: { shop } }),
+    prisma.faqEntry.count({ where: { shop } }).catch((e) => {
+      console.error("[settings] faqEntry.count failed:", e);
+      return 0;
+    }),
+    prisma.keywordMapping.count({ where: { shop } }).catch((e) => {
+      console.error("[settings] keywordMapping.count failed:", e);
+      return 0;
+    }),
     prisma.seoAudit.count({ where: { shop } }).catch(() => 0),
     prisma.geoOptimization.count({ where: { shop } }).catch(() => 0),
   ]);
