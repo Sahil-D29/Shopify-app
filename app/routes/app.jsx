@@ -1,6 +1,7 @@
-import { Outlet, useLoaderData, useRouteError, isRouteErrorResponse } from "@remix-run/react";
+import { Outlet, useLoaderData, useRouteError } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
+import { boundary } from "@shopify/shopify-app-remix/server";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
@@ -10,6 +11,8 @@ export const loader = async ({ request }) => {
   await authenticate.admin(request);
   return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
 };
+
+export const headers = (headersArgs) => boundary.headers(headersArgs);
 
 export default function App() {
   const { apiKey } = useLoaderData();
@@ -31,28 +34,5 @@ export default function App() {
 }
 
 export function ErrorBoundary() {
-  const error = useRouteError();
-
-  // Let Shopify's embedded auth handle 410 responses (token exchange bounce)
-  if (isRouteErrorResponse(error) && error.status === 410) {
-    return (
-      <AppProvider isEmbeddedApp>
-        <div />
-      </AppProvider>
-    );
-  }
-
-  return (
-    <AppProvider isEmbeddedApp>
-      <div style={{ padding: "2rem" }}>
-        <h1>Something went wrong</h1>
-        <p>Please try refreshing the page.</p>
-        {process.env.NODE_ENV === "development" && (
-          <pre style={{ whiteSpace: "pre-wrap", marginTop: "1rem" }}>
-            {error?.message || error?.data || String(error)}
-          </pre>
-        )}
-      </div>
-    </AppProvider>
-  );
+  return boundary.error(useRouteError());
 }
