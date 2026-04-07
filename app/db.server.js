@@ -14,9 +14,27 @@ function getPrismaClient() {
       /^libsql:\/\//,
       "https://"
     );
+    // Remix's node adapter patches global fetch; libsql passes a Request
+    // object to it which the patched fetch then re-stringifies, producing
+    // "[object Request]" and a URL parse error. Force libsql to use the
+    // unpatched undici fetch.
     const libsql = createClient({
       url: tursoUrl,
       authToken: process.env.TURSO_AUTH_TOKEN?.trim(),
+      fetch: (input, init) => {
+        if (input && typeof input === "object" && input.url) {
+          // input is a Request — unwrap to (url, init) which works on every fetch impl
+          const headers = {};
+          input.headers.forEach((v, k) => (headers[k] = v));
+          return fetch(input.url, {
+            method: input.method,
+            headers,
+            body: input.body,
+            ...init,
+          });
+        }
+        return fetch(input, init);
+      },
     });
     const adapter = new PrismaLibSQL(libsql);
     prisma = new PrismaClient({ adapter });
