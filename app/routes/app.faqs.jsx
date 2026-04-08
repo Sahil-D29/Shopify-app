@@ -43,6 +43,7 @@ export const action = async ({ request }) => {
   const intent = formData.get("intent");
 
   if (intent === "generate") {
+    try {
     const storeData = await fetchStoreData(admin);
 
     // Delete existing generated FAQs
@@ -103,8 +104,10 @@ export const action = async ({ request }) => {
       }
     }
 
-    // Batch insert
-    await prisma.faqEntry.createMany({ data: allFaqs });
+    // Insert one-by-one (libsql/sqlite createMany compatibility)
+    for (const f of allFaqs) {
+      await prisma.faqEntry.create({ data: f });
+    }
 
     return json({
       success: true,
@@ -112,6 +115,10 @@ export const action = async ({ request }) => {
       products: storeData.products.length,
       collections: storeData.collections.length,
     });
+    } catch (e) {
+      console.error("[faqs] generate failed:", e);
+      return json({ error: e?.message || "FAQ generation failed" }, { status: 500 });
+    }
   }
 
   return json({ error: "Unknown intent" }, { status: 400 });
@@ -144,6 +151,9 @@ export default function FaqsPage() {
           </p>
         </Banner>
 
+        {actionData?.error && (
+          <Banner tone="critical" title="Error">{actionData.error}</Banner>
+        )}
         {actionData?.success && (
           <Banner tone="success" title="FAQs Generated">
             Created {actionData.generated} FAQ entries from {actionData.products}{" "}

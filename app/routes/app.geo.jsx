@@ -69,75 +69,52 @@ export const action = async ({ request }) => {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
-  if (intent === "run_geo_audit") {
-    const { runGeoAudit } = await import("../lib/geo/geo-analyzer.server");
-    const results = await runGeoAudit(admin, 50);
+  try {
+    if (intent === "run_geo_audit") {
+      const { runGeoAudit } = await import("../lib/geo/geo-analyzer.server");
+      const results = await runGeoAudit(admin, 50);
 
-    for (const result of results) {
-      await prisma.geoOptimization.upsert({
-        where: { id: result.resourceId + "-" + shop }, // Will create new since ID is uuid
-        create: {
-          shop,
-          resourceType: "product",
-          resourceId: result.resourceId,
-          authorityScore: result.authorityScore,
-          geoReadiness: result.geoReadiness,
-          issues: JSON.stringify(result.issues),
-        },
-        update: {
-          authorityScore: result.authorityScore,
-          geoReadiness: result.geoReadiness,
-          issues: JSON.stringify(result.issues),
-        },
+      await prisma.geoOptimization.deleteMany({ where: { shop } });
+      for (const result of results) {
+        await prisma.geoOptimization.create({
+          data: {
+            shop,
+            resourceType: "product",
+            resourceId: result.resourceId,
+            authorityScore: result.authorityScore,
+            geoReadiness: result.geoReadiness,
+            issues: JSON.stringify(result.issues),
+          },
+        });
+      }
+
+      const avgScore = results.length > 0
+        ? Math.round(results.reduce((s, r) => s + r.geoReadiness, 0) / results.length)
+        : 0;
+      await prisma.scoreHistory.create({
+        data: { shop, scoreType: "geo", score: avgScore },
       });
+
+      return json({ success: true, analyzed: results.length });
     }
 
-    // Simpler approach: delete old and create new
-    await prisma.geoOptimization.deleteMany({ where: { shop } });
-    for (const result of results) {
-      await prisma.geoOptimization.create({
-        data: {
-          shop,
-          resourceType: "product",
-          resourceId: result.resourceId,
-          authorityScore: result.authorityScore,
-          geoReadiness: result.geoReadiness,
-          issues: JSON.stringify(result.issues),
-        },
-      });
+    if (intent === "generate_citations") {
+      const { generateAllCitations } = await import("../lib/geo/citation-generator.server");
+      const shopResponse = await admin.graphql(`{ shop { name } }`);
+      const shopData = await shopResponse.json();
+      const shopName = shopData.data?.shop?.name || shop;
+      const citations = await generateAllCitations(admin, shopName, 50);
+      for (const citation of citations) {
+        await prisma.geoOptimization.updateMany({
+          where: { shop, resourceId: citation.resourceId },
+          data: { citationSnippet: citation.citationSnippet },
+        });
+      }
+      return json({ success: true, generated: citations.length });
     }
-
-    // Record score history
-    const avgScore = results.length > 0
-      ? Math.round(results.reduce((s, r) => s + r.geoReadiness, 0) / results.length)
-      : 0;
-
-    await prisma.scoreHistory.create({
-      data: { shop, scoreType: "geo", score: avgScore },
-    });
-
-    return json({ success: true, analyzed: results.length });
-  }
-
-  if (intent === "generate_citations") {
-    const { generateAllCitations } = await import("../lib/geo/citation-generator.server");
-
-    // Get shop name
-    const shopResponse = await admin.graphql(`{ shop { name } }`);
-    const shopData = await shopResponse.json();
-    const shopName = shopData.data?.shop?.name || shop;
-
-    const citations = await generateAllCitations(admin, shopName, 50);
-
-    // Update GEO records with citations
-    for (const citation of citations) {
-      await prisma.geoOptimization.updateMany({
-        where: { shop, resourceId: citation.resourceId },
-        data: { citationSnippet: citation.citationSnippet },
-      });
-    }
-
-    return json({ success: true, generated: citations.length });
+  } catch (e) {
+    console.error("[geo] action failed:", e);
+    return json({ error: e?.message || "Action failed" }, { status: 500 });
   }
 
   return json({ error: "Invalid action" }, { status: 400 });

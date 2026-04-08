@@ -70,6 +70,7 @@ export const action = async ({ request }) => {
   const intent = formData.get("intent");
 
   if (intent === "run_audit") {
+    try {
     const access = await getFeatureAccess(prisma, shop);
     const maxProducts = access.maxSeoAuditProducts === -1 ? 250 : access.maxSeoAuditProducts;
 
@@ -118,6 +119,10 @@ export const action = async ({ request }) => {
     });
 
     return json({ success: true, audited: results.length });
+    } catch (e) {
+      console.error("[seo] run_audit failed:", e);
+      return json({ error: e?.message || "Audit failed" }, { status: 500 });
+    }
   }
 
   return json({ error: "Invalid action" }, { status: 400 });

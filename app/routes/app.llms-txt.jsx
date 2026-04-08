@@ -23,23 +23,28 @@ export const action = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
 
-  const storeData = await fetchStoreData(admin);
-  const content = generateLlmsTxt(storeData);
-  const fullContent = generateLlmsFullTxt(storeData);
+  try {
+    const storeData = await fetchStoreData(admin);
+    const content = generateLlmsTxt(storeData);
+    const fullContent = generateLlmsFullTxt(storeData);
 
-  await prisma.llmsTxt.upsert({
-    where: { shop },
-    create: { shop, content, fullContent, lastSyncAt: new Date() },
-    update: { content, fullContent, lastSyncAt: new Date() },
-  });
+    await prisma.llmsTxt.upsert({
+      where: { shop },
+      create: { shop, content, fullContent, lastSyncAt: new Date() },
+      update: { content, fullContent, lastSyncAt: new Date() },
+    });
 
-  return json({
-    success: true,
-    content,
-    fullContent,
-    productCount: storeData.products.length,
-    collectionCount: storeData.collections.length,
-  });
+    return json({
+      success: true,
+      content,
+      fullContent,
+      productCount: storeData.products.length,
+      collectionCount: storeData.collections.length,
+    });
+  } catch (e) {
+    console.error("[llms-txt] generate failed:", e);
+    return json({ error: e?.message || "Generation failed" }, { status: 500 });
+  }
 };
 
 export default function LlmsTxtPage() {

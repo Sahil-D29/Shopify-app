@@ -25,6 +25,7 @@ export const action = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
 
+  try {
   // Fetch all active products
   const res = await admin.graphql(`{
     products(first: 250, query: "status:active") {
@@ -57,9 +58,15 @@ export const action = async ({ request }) => {
     };
   });
 
-  await prisma.keywordMapping.createMany({ data: mappings });
+  for (const m of mappings) {
+    await prisma.keywordMapping.create({ data: m });
+  }
 
   return json({ success: true, generated: mappings.length });
+  } catch (e) {
+    console.error("[keywords] generate failed:", e);
+    return json({ error: e?.message || "Keyword generation failed" }, { status: 500 });
+  }
 };
 
 export default function KeywordsPage() {
@@ -95,6 +102,9 @@ export default function KeywordsPage() {
           <Banner tone="success">
             Generated keyword mappings for {actionData.generated} products.
           </Banner>
+        )}
+        {actionData?.error && (
+          <Banner tone="critical" title="Error">{actionData.error}</Banner>
         )}
 
         <Layout>
