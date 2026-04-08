@@ -24,15 +24,25 @@ export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
 
-  await ensureShopPlan(prisma, shop);
-  const access = await getFeatureAccess(prisma, shop);
+  let access = { maxSeoAuditProducts: 10 };
+  try {
+    await ensureShopPlan(prisma, shop);
+    access = await getFeatureAccess(prisma, shop);
+  } catch (e) {
+    console.error("[seo] ensureShopPlan/getFeatureAccess failed:", e);
+  }
 
   // Load existing audit results
-  const audits = await prisma.seoAudit.findMany({
-    where: { shop },
-    orderBy: { seoTitleScore: "asc" },
-    take: access.maxSeoAuditProducts === -1 ? 250 : access.maxSeoAuditProducts,
-  });
+  let audits = [];
+  try {
+    audits = await prisma.seoAudit.findMany({
+      where: { shop },
+      orderBy: { seoTitleScore: "asc" },
+      take: access.maxSeoAuditProducts === -1 ? 250 : access.maxSeoAuditProducts,
+    });
+  } catch (e) {
+    console.error("[seo] seoAudit.findMany failed:", e);
+  }
 
   // Calculate overview stats
   const totalProducts = audits.length;

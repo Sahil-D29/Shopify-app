@@ -24,18 +24,28 @@ export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
 
-  await ensureShopPlan(prisma, shop);
-  const access = await getFeatureAccess(prisma, shop);
+  let access = { geoOptimizer: true };
+  try {
+    await ensureShopPlan(prisma, shop);
+    access = await getFeatureAccess(prisma, shop);
+  } catch (e) {
+    console.error("[geo] ensureShopPlan/getFeatureAccess failed:", e);
+  }
 
   if (!access.geoOptimizer) {
     return json({ locked: true, access, geoData: [], stats: {} });
   }
 
-  const geoData = await prisma.geoOptimization.findMany({
-    where: { shop },
-    orderBy: { geoReadiness: "asc" },
-    take: 250,
-  });
+  let geoData = [];
+  try {
+    geoData = await prisma.geoOptimization.findMany({
+      where: { shop },
+      orderBy: { geoReadiness: "asc" },
+      take: 250,
+    });
+  } catch (e) {
+    console.error("[geo] geoOptimization.findMany failed:", e);
+  }
 
   const totalProducts = geoData.length;
   const avgScore = totalProducts > 0

@@ -23,9 +23,9 @@ export const loader = async ({ request }) => {
   const shop = session.shop;
 
   const [llmsTxt, robotsTxt, keywordCount] = await Promise.all([
-    prisma.llmsTxt.findUnique({ where: { shop } }),
-    prisma.robotsTxtConfig.findUnique({ where: { shop } }),
-    prisma.keywordMapping.count({ where: { shop } }),
+    prisma.llmsTxt.findUnique({ where: { shop } }).catch((e) => { console.error("[ai-discovery] llmsTxt failed:", e); return null; }),
+    prisma.robotsTxtConfig.findUnique({ where: { shop } }).catch((e) => { console.error("[ai-discovery] robotsTxtConfig failed:", e); return null; }),
+    prisma.keywordMapping.count({ where: { shop } }).catch((e) => { console.error("[ai-discovery] keywordMapping failed:", e); return 0; }),
   ]);
 
   return json({

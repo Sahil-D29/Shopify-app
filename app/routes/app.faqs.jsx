@@ -11,11 +11,16 @@ export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
   const shop = session.shop;
 
-  const faqs = await prisma.faqEntry.findMany({
-    where: { shop },
-    orderBy: [{ resourceType: "asc" }, { sortOrder: "asc" }],
-    take: 100,
-  });
+  let faqs = [];
+  try {
+    faqs = await prisma.faqEntry.findMany({
+      where: { shop },
+      orderBy: [{ resourceType: "asc" }, { sortOrder: "asc" }],
+      take: 100,
+    });
+  } catch (e) {
+    console.error("[faqs] findMany failed:", e);
+  }
 
   const counts = {
     store: faqs.filter((f) => f.resourceType === "store").length,
