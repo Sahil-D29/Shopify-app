@@ -2,45 +2,67 @@ import { json } from "@remix-run/node";
 import { useLoaderData, useSubmit, useNavigation, useActionData } from "@remix-run/react";
 import {
   Page, Layout, Card, BlockStack, Text, Button, Banner, Checkbox, Box,
-  FormLayout, TextField, InlineStack, Select,
+  FormLayout, TextField, InlineStack,
 } from "@shopify/polaris";
 import { useState } from "react";
 
-function InlineButtonRow({ installed, onInstall, onUninstall, loading }) {
-  return (
-    <InlineStack gap="300">
-      <Button variant="primary" onClick={onInstall} loading={loading}>
-        {installed ? "Reinstall in theme" : "Install in theme"}
-      </Button>
-      {installed && (
-        <Button tone="critical" onClick={onUninstall} loading={loading}>
-          Remove from theme
-        </Button>
-      )}
-    </InlineStack>
-  );
+const SNIPPET_CONTENT = `{%- comment -%}
+  AI Discovery Optimizer — JSON-LD structured data
+{%- endcomment -%}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": {{ shop.name | json }},
+  "url": {{ shop.url | json }}
+  {%- if shop.email %},"email": {{ shop.email | json }}{% endif -%}
+  {%- if shop.brand.logo %},"logo": {{ shop.brand.logo | image_url: width: 600 | prepend: 'https:' | json }}{% endif -%}
 }
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": {{ shop.name | json }},
+  "url": {{ shop.url | json }},
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "{{ shop.url }}/search?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
+{%- if template contains 'product' and product -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": {{ product.title | json }},
+  "description": {{ product.description | strip_html | truncatewords: 50 | json }},
+  "brand": { "@type": "Brand", "name": {{ product.vendor | json }} },
+  {%- if product.featured_image %}"image": {{ product.featured_image | image_url: width: 1200 | prepend: 'https:' | json }},{% endif %}
+  "offers": {
+    "@type": "Offer",
+    "price": {{ product.price | divided_by: 100.0 | json }},
+    "priceCurrency": {{ shop.currency | json }},
+    "availability": "{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+    "url": "{{ shop.url }}{{ product.url }}"
+  }
+}
+</script>
+{%- endif -%}`;
 
 export const loader = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
   const { default: prisma } = await import("../db.server");
   const { generateHomepageSchemas, generateProductSchema } = await import("../lib/ai-discovery/structured-data-generator.server");
-  const { isInstalledInTheme, listThemes } = await import("../lib/theme-injection.server");
-
   const { admin, session } = await authenticate.admin(request);
   const config = await prisma.structuredDataConfig.findUnique({
     where: { shop: session.shop },
   });
-
-  const url = new URL(request.url);
-  const selectedThemeId = url.searchParams.get("themeId") || null;
-
-  const themes = await listThemes(admin).catch(() => []);
-  const themeStatus = await isInstalledInTheme(admin, selectedThemeId).catch(() => ({
-    installed: false,
-    themeName: null,
-    themeId: null,
-  }));
 
   // Fetch a sample product for preview
   const shopRes = await admin.graphql(`{
@@ -84,41 +106,17 @@ export const loader = async ({ request }) => {
       ? JSON.stringify(productSchema, null, 2)
       : null,
     sampleProductTitle: sampleProduct?.title,
-    themeStatus,
-    themes,
-    selectedThemeId,
+    shopDomain: session.shop,
   });
 };
 
 export const action = async ({ request }) => {
   const { authenticate } = await import("../shopify.server");
   const { default: prisma } = await import("../db.server");
-  const { installInTheme, uninstallFromTheme } = await import("../lib/theme-injection.server");
 
-  const { admin, session } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
   const formData = await request.formData();
   const shop = session.shop;
-  const intent = formData.get("intent");
-
-  if (intent === "install_theme") {
-    try {
-      const themeId = formData.get("themeId") || null;
-      const result = await installInTheme(admin, themeId);
-      return json({ themeInstalled: true, themeName: result.themeName, alreadyInstalled: result.alreadyInstalled });
-    } catch (e) {
-      return json({ themeError: e.message }, { status: 500 });
-    }
-  }
-
-  if (intent === "uninstall_theme") {
-    try {
-      const themeId = formData.get("themeId") || null;
-      const result = await uninstallFromTheme(admin, themeId);
-      return json({ themeUninstalled: true, themeName: result.themeName });
-    } catch (e) {
-      return json({ themeError: e.message }, { status: 500 });
-    }
-  }
 
   const config = {
     enableProduct: formData.get("enableProduct") === "true",
@@ -142,8 +140,17 @@ export const action = async ({ request }) => {
 };
 
 export default function StructuredDataPage() {
-  const { config, homepageSchemasPreview, productSchemaPreview, sampleProductTitle, themeStatus, themes, selectedThemeId } = useLoaderData();
-  const [chosenThemeId, setChosenThemeId] = useState(selectedThemeId || themeStatus.themeId || (themes[0]?.id ?? ""));
+  const { config, homepageSchemasPreview, productSchemaPreview, sampleProductTitle, shopDomain } = useLoaderData();
+  const storeHandle = (shopDomain || "").replace(".myshopify.com", "");
+  const themeEditorUrl = `https://admin.shopify.com/store/${storeHandle}/themes/current/editor?context=apps`;
+  const [copied, setCopied] = useState(false);
+  const copySnippet = async () => {
+    try {
+      await navigator.clipboard.writeText(SNIPPET_CONTENT);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  };
   const actionData = useActionData();
   const submit = useSubmit();
   const navigation = useNavigation();
@@ -186,60 +193,25 @@ export default function StructuredDataPage() {
           </Banner>
         )}
 
-        {actionData?.themeInstalled && (
-          <Banner tone="success" title={actionData.alreadyInstalled ? "Already installed" : "Installed in theme"}>
-            Schemas {actionData.alreadyInstalled ? "are already" : "have been"} added to <strong>{actionData.themeName}</strong>.
-          </Banner>
-        )}
-        {actionData?.themeUninstalled && (
-          <Banner tone="info" title="Removed from theme">
-            Removed from <strong>{actionData.themeName}</strong>.
-          </Banner>
-        )}
-        {actionData?.themeError && (
-          <Banner tone="critical" title="Theme update failed">
-            <p>{actionData.themeError}</p>
-          </Banner>
-        )}
-
         <Card>
           <BlockStack gap="400">
-            <Text as="h2" variant="headingMd">Auto-insert into theme</Text>
+            <Text as="h2" variant="headingMd">Add schemas to your theme</Text>
             <Text as="p" variant="bodyMd" tone="subdued">
-              {themeStatus.installed
-                ? `Currently installed in ${themeStatus.themeName}. The snippet renders schemas on every page automatically.`
-                : "One click adds a Liquid snippet to your published theme that emits Organization, WebSite, Product, Collection, and Article schemas on the right pages."}
+              Copy the Liquid snippet below and paste it into your theme's <code>theme.liquid</code> just before <code>&lt;/head&gt;</code>. It emits Organization, WebSite, and Product JSON-LD automatically on the right pages. Shopify requires theme-file write exemption for one-click install, so this copy-paste flow works on any theme with zero permissions.
             </Text>
-            <Select
-              label="Theme"
-              options={themes.map((t) => ({
-                label: `${t.name}${t.role === "MAIN" ? " (published)" : ` (${t.role.toLowerCase()})`}`,
-                value: t.id,
-              }))}
-              value={chosenThemeId}
-              onChange={(v) => {
-                setChosenThemeId(v);
-                submit({ themeId: v }, { method: "GET" });
-              }}
-            />
-            <InlineButtonRow
-              installed={themeStatus.installed}
-              onInstall={() => {
-                const fd = new FormData();
-                fd.set("intent", "install_theme");
-                fd.set("themeId", chosenThemeId);
-                submit(fd, { method: "POST" });
-              }}
-              onUninstall={() => {
-                if (confirm("Remove the AI Discovery snippet from this theme?")) {
-                  const fd = new FormData();
-                  fd.set("intent", "uninstall_theme");
-                  fd.set("themeId", chosenThemeId);
-                  submit(fd, { method: "POST" });
-                }
-              }}
-              loading={isSaving}
-            />
+            <Box padding="400" background="bg-surface-secondary" borderRadius="200">
+              <pre style={{ whiteSpace: "pre-wrap", fontSize: 11, maxHeight: 260, overflow: "auto", margin: 0 }}>
+                {SNIPPET_CONTENT}
+              </pre>
+            </Box>
+            <InlineStack gap="300">
+              <Button variant="primary" onClick={copySnippet}>
+                {copied ? "Copied!" : "Copy snippet"}
+              </Button>
+              <Button url={themeEditorUrl} target="_blank" external>
+                Open theme editor
+              </Button>
+            </InlineStack>
           </BlockStack>
         </Card>
 
