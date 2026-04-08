@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx shopify:*)",
+      "Bash(tasklist)",
+      "Bash(wmic process:*)",
+      "Bash(netstat -aon)",
+      "Bash(taskkill //F //PID 17080)",
+      "Bash(curl -k https://localhost:3000)",
+      "Bash(curl http://localhost:3000)",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":9293\")",
+      "Bash(findstr \":3000\")",
+      "Bash(taskkill //F //PID 27900)"
+    ]
+  }
+}

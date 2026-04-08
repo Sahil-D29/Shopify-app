@@ -101,6 +101,25 @@ async function getMainTheme(admin) {
   return data?.themes?.nodes?.[0] || null;
 }
 
+export async function listThemes(admin) {
+  const res = await admin.graphql(`{
+    themes(first: 50) {
+      nodes { id name role }
+    }
+  }`);
+  const { data } = await res.json();
+  return data?.themes?.nodes || [];
+}
+
+async function getThemeById(admin, themeId) {
+  const res = await admin.graphql(
+    `query($id: ID!) { theme(id: $id) { id name role } }`,
+    { variables: { id: themeId } }
+  );
+  const { data } = await res.json();
+  return data?.theme || null;
+}
+
 async function getThemeFileContent(admin, themeId, filename) {
   const res = await admin.graphql(
     `query GetFile($id: ID!, $filenames: [String!]!) {
@@ -155,19 +174,28 @@ async function deleteThemeFile(admin, themeId, filename) {
     .catch(() => {});
 }
 
-export async function isInstalledInTheme(admin) {
-  const theme = await getMainTheme(admin);
-  if (!theme) return { installed: false, themeName: null };
+async function resolveTheme(admin, themeId) {
+  if (themeId) {
+    const t = await getThemeById(admin, themeId);
+    if (t) return t;
+  }
+  return getMainTheme(admin);
+}
+
+export async function isInstalledInTheme(admin, themeId) {
+  const theme = await resolveTheme(admin, themeId);
+  if (!theme) return { installed: false, themeName: null, themeId: null };
   const layout = await getThemeFileContent(admin, theme.id, LAYOUT_FILENAME);
   return {
     installed: !!(layout && layout.includes(INJECT_MARKER_START)),
     themeName: theme.name,
+    themeId: theme.id,
   };
 }
 
-export async function installInTheme(admin) {
-  const theme = await getMainTheme(admin);
-  if (!theme) throw new Error("No published theme found.");
+export async function installInTheme(admin, themeId) {
+  const theme = await resolveTheme(admin, themeId);
+  if (!theme) throw new Error("No theme found.");
 
   // 1. Upsert the snippet
   await upsertThemeFile(admin, theme.id, SNIPPET_FILENAME, SNIPPET_CONTENT);
@@ -190,9 +218,9 @@ export async function installInTheme(admin) {
   return { themeName: theme.name, alreadyInstalled: false };
 }
 
-export async function uninstallFromTheme(admin) {
-  const theme = await getMainTheme(admin);
-  if (!theme) throw new Error("No published theme found.");
+export async function uninstallFromTheme(admin, themeId) {
+  const theme = await resolveTheme(admin, themeId);
+  if (!theme) throw new Error("No theme found.");
 
   const layout = await getThemeFileContent(admin, theme.id, LAYOUT_FILENAME);
   if (layout) {
